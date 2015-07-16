@@ -1,0 +1,14 @@
+{
+  "name": "slapp-happy",
+  "version": "1.0.0",
+  "description": "Apps for Slack",
+  "main": "main.js",
+  "author": "Jenn",
+  "license": "ISC",
+  "dependencies": {
+    "lodash-node": "^3.10.0",
+    "q": "^1.4.1",
+    "slack-node": "^0.1.3",
+    "websocket": "^1.0.19"
+  }
+}
