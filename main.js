@@ -1,13 +1,15 @@
-var key = 'xoxb-7614585861-00ax4Gyu42U6OmeM69cvMMIH';
+var config = require('./config');
 
 var Slack = require('slack-node');
 var WebSocketClient = require('websocket').client;
 var EventEmitter = require('events').EventEmitter;
 var _ = require('lodash-node');
 
-var slack = new Slack(key);
+var slack = new Slack(config.key);
 var socket = new WebSocketClient();
 var ev = new EventEmitter();
+
+var Slapp = require('./slapp.js');
 
 // Do we only care about certain type of responses? I would guess, yes.
 // Subscribe to those we care about.
@@ -77,146 +79,9 @@ ev.on('slapp_reaction_added', function(data) {
 
 });
 
-var Slapp = function(options) {
-  this.options = options;
-
-  // New UI
-  this.ui = new UI({
-    text: this.options.text,
-    type: this.options.type,
-    action: this.options.action
-  });
-
-  ev.on(this.options.keyword, this.createSlapp.bind(this));
-};
-
-Slapp.prototype.createSlapp = function(data) {
-  this.data = data;
-
-  // Merge options with data
-  this.ui.setUI(this.data);
-};
-
-Slapp.prototype.postMessage = function() {
-  slack.api('chat.postMessage', {
-    text: this.options.text,
-    channel: this.data.channel
-  }, function(err, response){
-    console.log(response);
-  });
-};
-
-Slapp.prototype.getKeyword = function() {
-  return this.options.keyword;
-};
 
 
-// UI object controls the Slapp user interface
-var UI = function(options) {
-  var defaults = {
-    rows: 0,
-    type: 'basic_list',
-    action: 'list_out'
-  };
 
-  this.options = options;
-
-  this.state = {};
-
-  this.templates = {
-    numbered_list: function(start, options) {
-      var numbers = emojiTypes.numbers;
-      var controls = [];
-      var i;
-
-      for (i = 0; i < options.length; i++) {
-        var emoji = numbers[i];
-        controls.push(emoji);
-        start += ':' + emoji + ': ' + options[i] + '\n';
-      }
-
-      return {
-        layout: start,
-        controls: controls
-      };
-    },
-    checklist: function () {
-
-    },
-    custom_list: function() {
-
-    }
-  };
-};
-
-UI.prototype.setUI = function(data) {
-  this.data = data;
-  this.state.channel = data.channel;
-  this.state.ui = this.buildUI();
-
-  var handleResponse = function(err, response){
-    if (err) {
-      console.log(err);
-    }
-
-    if (response.ok === true) {
-      this.state.ts = response.ts;
-      this.state.text = response.text;
-
-      this.setControls();
-    }
-  };
-
-  this.postUI({
-    text: this.state.ui,
-    onComplete: handleResponse.bind(this)
-  });
-};
-
-UI.prototype.buildUI = function() {
-  var greeting = this.options.text;
-  this.state.app = this.data.app;
-  this.state.options = this.data.options.split(',');
-
-  this.state.start = greeting + '\n';
-  var template = this.templates[this.options.type](this.state.start, this.state.options);
-  this.state.controls = template.controls;
-
-  return template.layout;
-};
-
-UI.prototype.setControls = function() {
-  console.log('setControls');
-  this.postReaction();
-};
-
-UI.prototype.postUI = function(opts) {
-  slack.api('chat.postMessage', {
-    text: opts.text,
-    channel: this.state.channel
-  }, opts.onComplete);
-};
-
-UI.prototype.postReaction = function() {
-  console.log('postReaction');
-  slack.api('reactions.add', {
-    name: 'cookie',
-    channel: this.state.channel,
-    timestamp: this.state.ts
-  }, function(err, response) {
-    if (err) {
-      console.log(err);
-    }
-
-    if (response) {
-      console.log(response);
-    }
-  });
-};
-
-UI.prototype.updateUI = function() {
-
-};
 
 
 // Test Slapps
@@ -254,13 +119,5 @@ var toDoSlapp = new Slapp({
 //   reaction: 'cookie',
 //   event_ts: '1436993956.020219' }
 
-//Slapp object
-  // Initializes & passes on configs
-  // Listens for keyword
-
 // Controls object
   // Build out buttons for controls & set event listeners/actions
-
-// Board object
-  // Builds out the board/space
-  // Maintains/updates
