@@ -2,12 +2,11 @@ var config = require('./config');
 
 var Slack = require('slack-node');
 var WebSocketClient = require('websocket').client;
-var EventEmitter = require('events').EventEmitter;
 var _ = require('lodash-node');
 
 var slack = new Slack(config.key);
 var socket = new WebSocketClient();
-var ev = new EventEmitter();
+var ev = require('./emitter.js');
 
 var Slapp = require('./slapp.js');
 
@@ -15,10 +14,19 @@ var Slapp = require('./slapp.js');
 // Subscribe to those we care about.
 var messageTypes = ['message', 'reaction_added', 'reaction_removed'];
 
-var emojiTypes = {
-  numbers: ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'keycap_ten'],
-  checklist: ['ballot_box_with_check', 'white_medium_square']
-}
+var handleSlappEvent = function(data) {
+  // Break message into slapp request, command, options
+  var message = data.text.split(' ');
+  var isSlappRequest = message[0] === 'slapp';
+
+  if (isSlappRequest) {
+    data.app = message[1];
+    data.options = message[2];
+    return data;
+  }
+
+  return isSlappRequest;
+};
 
 // Connect to Slack's Real Time Messaging API
 slack.api('rtm.start', function(error, response) {
@@ -62,21 +70,20 @@ socket.on('connect', function(connection) {
 
 // On message, see if it's relevant
 // TODO: use messageTypes to generate event listeners
-ev.on('slapp_message', function(data) {
-  // Break message into slapp request, command, options
-  var message = data.text.split(' ');
-  var isSlappRequest = message[0] === 'slapp';
+ev.on('slapp_message', function(res) {
+  var data = handleSlappEvent(res);
 
-  if (isSlappRequest) {
-    data.app = message[1];
-    data.options = message[2];
-
+  if (data) {
     ev.emit(data.app, data);
   }
 });
 
 ev.on('slapp_reaction_added', function(data) {
+  var data = handleSlappEvent(res);
 
+  if (data) {
+    ev.emit('reaction_added_' + data.channel + '_' + data.ts, data);
+  }
 });
 
 
@@ -98,26 +105,6 @@ var buffaloSlapp = new Slapp({
 
 var toDoSlapp = new Slapp({
   keyword: 'todo',
-  text: 'Let\'s get shit done!'
+  text: 'Let\'s get shit done!',
+  type: 'checklist'
 });
-
-// { type: 'message',
-//   channel: 'G07J2CBH8',
-//   user: 'U03LPH69K',
-//   text: 'slapp vote one,two,three',
-//   ts: '1436982046.000009',
-//   team: 'T0259B10F',
-//   appType: 'vote',
-//   command: 'one,two,three' }
-
-// { type: 'reaction_added',
-//   user: 'U03LPH69K',
-//   item:
-//    { type: 'message',
-//      channel: 'G07J2CBH8',
-//      ts: '1436993948.000103' },
-//   reaction: 'cookie',
-//   event_ts: '1436993956.020219' }
-
-// Controls object
-  // Build out buttons for controls & set event listeners/actions

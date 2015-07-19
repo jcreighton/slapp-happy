@@ -1,6 +1,7 @@
 var config = require('./config');
 
 var Slack = require('slack-node');
+// var Promise = require('promise');
 var Templates = require('./templates.js');
 
 var slack = new Slack(config.key);
@@ -57,13 +58,35 @@ UI.prototype.buildUI = function() {
 };
 
 UI.prototype.setControls = function() {
-  console.log('setControls');
-  var controls = this.state.controls;
-  var i;
+  var controls = this.state.controls.concat(['four', 'five', 'six']);
 
-  for (i = 0; i < controls.length; i++) {
-    this.postReaction(controls[i]);
-  }
+  var _this = this;
+
+  var addReaction = function(reaction) {
+    return new Promise(function(resolve, reject) {
+      slack.api('reactions.add', {
+        name: reaction,
+        channel: _this.state.channel,
+        timestamp: _this.state.ts
+      }, function(err, response) {
+        if (err) {
+          reject(err);
+        }
+
+        if (response) {
+          resolve(response);
+        }
+      });
+    });
+  };
+
+  var promiseSequence = function(arr, promiseFn, onComplete) {
+    return arr.reduce(function(sequence, item) {
+      return sequence.then(function() { return promiseFn(item); });
+    }, Promise.resolve());
+  };
+
+  promiseSequence(controls, addReaction);
 };
 
 UI.prototype.postUI = function(opts) {
@@ -74,7 +97,6 @@ UI.prototype.postUI = function(opts) {
 };
 
 UI.prototype.postReaction = function(reaction) {
-  console.log('postReaction');
   slack.api('reactions.add', {
     name: reaction,
     channel: this.state.channel,
@@ -91,7 +113,11 @@ UI.prototype.postReaction = function(reaction) {
 };
 
 UI.prototype.updateUI = function() {
-
+  slack.api('chat.update', {
+    channel: this.state.channel,
+    ts: this.state.ts,
+    text: 'Update'
+  });
 };
 
 module.exports = UI;

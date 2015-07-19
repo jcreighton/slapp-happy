@@ -1,11 +1,10 @@
 var config = require('./config');
 
 var Slack = require('slack-node');
-var EventEmitter = require('events').EventEmitter;
-var UI = require('./ui.js');
 
+var UI = require('./ui.js');
+var ev = require('./emitter.js');
 var slack = new Slack(config.key);
-var ev = new EventEmitter();
 
 // Configures UI & Interactions
 // Handles custom setups
@@ -26,6 +25,7 @@ var Slapp = function(options) {
 };
 
 Slapp.prototype.createSlapp = function(data) {
+  console.log('createSlapp');
   this.data = data;
 
   // Merge options with data?
