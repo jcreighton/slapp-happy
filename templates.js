@@ -1,7 +1,7 @@
 // Add Emoji templates here!
 var emojiTemplates = {
   numbers: ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'keycap_ten'],
-  checklist: ['ballot_box_with_check', 'white_medium_square']
+  checklist: { unchecked: 'white_medium_square', checked: 'ballot_box_with_check' }
 };
 
 
@@ -13,9 +13,9 @@ var Templates = {
     var i;
 
     var layout = options.reduce(function(collector, option, i) {
-      var emoji = numbers[i];
+      var number = numbers[i];
       controls.push(emoji);
-      return collector + ':' + emoji + ': ' + option + '\n';
+      return collector + ':' + number + ': ' + option + '\n';
     }, start);
 
     return {
@@ -23,11 +23,31 @@ var Templates = {
       controls: controls
     };
   },
-  checklist: function () {
+  checklist: function (start, options) {
+    var unchecked = emojiTemplates.checklist.unchecked;
+    var numbers = emojiTemplates.numbers;
+    var controls = [];
+    var i;
 
+    var layout = options.reduce(function(collector, option, i) {
+      var number = numbers[i];
+      controls.push(number);
+      return collector + ':' + number + ': ' + ':' + unchecked + ': ' + option + '\n';
+    }, start);
+
+    return {
+      layout: layout,
+      controls: controls
+    }
   },
-  custom_list: function() {
+  custom: function() {
+    var layout = 'This is a test.';
+    var controls = ['dog', 'walking'];
 
+    return {
+      layout: layout,
+      controls: controls,
+    }
   }
 };
 

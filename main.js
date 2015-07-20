@@ -9,7 +9,7 @@ var socket = new WebSocketClient();
 var ev = require('./emitter.js');
 
 var Slapp = require('./slapp.js');
-var Register = require('./register.js');
+var register = require('./register.js');
 
 // Do we only care about certain type of responses? I would guess, yes.
 // Subscribe to those we care about.
@@ -83,28 +83,36 @@ ev.on('slapp_reaction_added', function(res) {
   ev.emit('reaction_added_' + res.item.channel + '_' + res.item.ts, res);
 });
 
-var register = new Register();
 
+
+
+
+// Test Slapps
 register.slapp({
   keyword: 'vote',
-  text: 'Let\s vote!',
+  text: 'Let\'s vote!',
   type: 'numbered_list'
 });
 
-// // Test Slapps
-// var voteSlapp = new Slapp({  //slapp vote one,two,three
-//   keyword: 'vote',
-//   text: 'Let\s vote!',
-//   type: 'numbered_list'
-// });
+register.slapp({
+  keyword: 'checklist',
+  text: 'Let\'s get shit done:',
+  type: 'checklist'
+});
 
-// var buffaloSlapp = new Slapp({
-//   keyword: 'buffalo',
-//   text: 'Roaming the open plain'
-// });
+register.slapp({
+  keyword: 'buffalo',
+  text: 'Roaming the open plain',
+  type: 'custom',
+  controls: ['dog', 'cookie'],
+  template: function() {
+    var layout = 'This is a test.';
+    var controls = ['dog', 'walking'];
 
-// var toDoSlapp = new Slapp({
-//   keyword: 'todo',
-//   text: 'Let\'s get shit done!',
-//   type: 'checklist'
-// });
+    return {
+      layout: layout,
+      controls: controls
+    }
+  }
+});
+

@@ -58,9 +58,8 @@ UI.prototype.buildUI = function() {
 };
 
 UI.prototype.setControls = function() {
-  var controls = this.state.controls;
-
   var _this = this;
+  var controls = this.state.controls;
 
   var addReaction = function(reaction) {
     return new Promise(function(resolve, reject) {
@@ -80,19 +79,16 @@ UI.prototype.setControls = function() {
     });
   };
 
-  var promiseSequence = function(arr, promiseFn, onComplete) {
+  var promiseSequence = function(arr, promiseFn) {
     return arr.reduce(function(sequence, item) {
       return sequence.then(function() { return promiseFn(item); });
     }, Promise.resolve());
   };
 
-  promiseSequence(controls, addReaction);
-
-  // When all of those are resolved,
-  // set event listener for 'reaction_added_' + data.item.channel + '_' + data.item.ts
-  var reactionEvent = 'reaction_added_' + this.state.channel + '_' + this.state.ts;
-  ev.on(reactionEvent, function(res) {
-    console.log('RESPONSE: ', res, 'STATE: ', _this.state);
+  // Set reaction listener after resolving all promises
+  Promise.all([promiseSequence(controls, addReaction)])
+  .then(function() {
+    _this.setReactionListener();
   });
 };
 
@@ -117,6 +113,20 @@ UI.prototype.postReaction = function(reaction) {
       console.log(response);
     }
   });
+};
+
+UI.prototype.setReactionListener = function() {
+  console.log('reactionset');
+  var _this = this;
+
+  var reactionEvent = 'reaction_added_' + this.state.channel + '_' + this.state.ts;
+  ev.on(reactionEvent, _this.handleReactionEvent.bind(this));
+};
+
+UI.prototype.handleReactionEvent = function(res) {
+  var reaction = res.reaction;
+  console.log('REACTION', reaction);
+
 };
 
 UI.prototype.updateUI = function() {
