@@ -1,8 +1,8 @@
 var config = require('./config');
 
 var Slack = require('slack-node');
-// var Promise = require('promise');
 var Templates = require('./templates.js');
+var ev = require('./emitter.js');
 
 var slack = new Slack(config.key);
 
@@ -58,7 +58,7 @@ UI.prototype.buildUI = function() {
 };
 
 UI.prototype.setControls = function() {
-  var controls = this.state.controls.concat(['four', 'five', 'six']);
+  var controls = this.state.controls;
 
   var _this = this;
 
@@ -87,6 +87,13 @@ UI.prototype.setControls = function() {
   };
 
   promiseSequence(controls, addReaction);
+
+  // When all of those are resolved,
+  // set event listener for 'reaction_added_' + data.item.channel + '_' + data.item.ts
+  var reactionEvent = 'reaction_added_' + this.state.channel + '_' + this.state.ts;
+  ev.on(reactionEvent, function(res) {
+    console.log('RESPONSE: ', res, 'STATE: ', _this.state);
+  });
 };
 
 UI.prototype.postUI = function(opts) {

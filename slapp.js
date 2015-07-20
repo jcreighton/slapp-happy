@@ -11,8 +11,9 @@ var slack = new Slack(config.key);
 // Handles error states/communication between user & Slapp
 // Set listeners for custom app initializer
 
-var Slapp = function(options) {
-  this.options = options;
+var Slapp = function(opts) {
+  this.options = opts.options;
+  this.data = opts.data
 
   // New UI
   this.ui = new UI({
@@ -21,14 +22,12 @@ var Slapp = function(options) {
     action: this.options.action
   });
 
-  ev.on(this.options.keyword, this.createSlapp.bind(this));
+  this.createSlapp();
 };
 
-Slapp.prototype.createSlapp = function(data) {
+Slapp.prototype.createSlapp = function() {
   console.log('createSlapp');
-  this.data = data;
 
-  // Merge options with data?
   this.ui.setUI(this.data);
 };
 
